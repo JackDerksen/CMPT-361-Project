@@ -4,7 +4,8 @@ import os
 
 
 def generate_key_pair(username):
-    """Generate public/private key pair for a given username"""
+    """ Generate public/private key pair for a given username """
+
     # Generate 2048-bit RSA key pair
     key = RSA.generate(2048)
 
@@ -20,7 +21,8 @@ def generate_key_pair(username):
 
 
 def main():
-    # Generate server keys
+    """ Main function to generate keys for server and known clients """
+
     print("Generating server keys...")
     generate_key_pair("server")
 
