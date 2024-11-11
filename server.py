@@ -10,7 +10,7 @@ import glob
 
 
 class EmailServer:
-    def __init__(self, port=1300):
+    def __init__(self, port=13000):
         self.port = port
         self.load_server_keys()
         self.load_user_credentials()
@@ -61,7 +61,7 @@ class EmailServer:
                 sym_key)
             client_socket.send(encrypted_sym_key)
             print(
-                f"Connection accepted and symmetric key generated for client: {username}")
+                f"Connection accepted, symmetric key generated for client: {username}")
 
             # Wait for client's acknowledgement
             cipher = AES.new(sym_key, AES.MODE_ECB)
@@ -72,12 +72,14 @@ class EmailServer:
 
             # Main client service loop
             while True:
-                menu = '''Select the operation:
-                           1) Create and send an email
-                           2) Display the inbox list
-                           3) Display the email contents
-                           4) Terminate the connection
-                           choice: '''
+                menu = '''
+\nSelect the operation:
+ 1) Create and send an email
+ 2) Display the inbox list
+ 3) Display the email contents
+ 4) Terminate the connection
+Choice:
+'''
 
                 encrypted_menu = cipher.encrypt(
                     menu.encode().ljust((len(menu) // 16 + 1) * 16))
@@ -110,17 +112,95 @@ class EmailServer:
     def handle_send_email(self, client_socket, cipher, sender):
         """ Handle email sending protocol for client """
 
-        pass
+        # Send request for email
+        encrypted_msg = cipher.encrypt(b"Send the email".ljust(16))
+        client_socket.send(encrypted_msg)
+
+        # Receive and process email
+        encrypted_email = client_socket.recv(4096)  # Might need to adjust size
+        email_content = cipher.decrypt(encrypted_email).strip().decode()
+
+        # Parse email content
+        lines = email_content.split('\n')
+        recipients = lines[1].split(': ')[1].split(';')
+        content_length = int(lines[3].split(': ')[1])
+
+        # Add timestamp
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        email_with_time = (
+            f"{lines[0]}\n"  # From
+            f"{lines[1]}\n"  # To
+            f"Time and Date: {timestamp}\n"
+            f"{lines[2]}\n"  # Title
+            f"{lines[3]}\n"  # Content Length
+            f"{lines[4]}\n"  # Content marker
+            f"{lines[5]}"    # Content
+        )
+
+        # Save for each recipient
+        title = lines[2].split(': ')[1]
+        for recipient in recipients:
+            recipient = recipient.strip()
+            filename = f"{recipient}/{sender}_{title}.txt"
+            with open(filename, "w") as f:
+                f.write(email_with_time)
+
+        print(f"An email from {sender} is sent to {', '.join(
+            recipients)} has a content length of {content_length}")
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """ Handle inbox viewing protocol for client """
 
-        pass
+        # Get all emails in the user's directory
+        emails = []
+        for filepath in glob.glob(f"{username}/*_*.txt"):
+            with open(filepath, "r") as f:
+                content = f.read()
+                lines = content.split('\n')
+                sender = lines[0].split(': ')[1]
+                timestamp = lines[2].split(': ')[1]
+                title = lines[3].split(': ')[1]
+                emails.append((sender, timestamp, title))
+
+        # Sort by timestamp
+        emails.sort(key=lambda x: x[1], reverse=True)
+
+        # Format inbox list
+        inbox_list = "\n".join(f"{i+1}. From: {sender}, Time: {timestamp}, Title: {title}"
+                               for i, (sender, timestamp, title) in enumerate(emails))
+
+        # Send to client
+        encrypted_list = cipher.encrypt(
+            inbox_list.encode().ljust((len(inbox_list)//16 + 1) * 16))
+        client_socket.send(encrypted_list)
+
+        # Wait for acknowledgment
+        client_socket.recv(1024)
 
     def handle_view_email(self, client_socket, cipher, username):
         """ Handle email viewing protocol for client """
 
-        pass
+        # Request email index
+        request = cipher.encrypt(b"the server request email index".ljust(32))
+        client_socket.send(request)
+
+        # Get email index
+        encrypted_index = client_socket.recv(1024)
+        index = int(cipher.decrypt(encrypted_index).strip())
+
+        # Get email content
+        emails = sorted(glob.glob(f"{username}/*_*.txt"),
+                        key=lambda x: os.path.getmtime(x), reverse=True)
+
+        if 0 <= index - 1 < len(emails):
+            with open(emails[index-1], "r") as f:
+                content = f.read()
+                encrypted_content = cipher.encrypt(
+                    content.encode().ljust((len(content)//16 + 1) * 16))
+                client_socket.send(encrypted_content)
+        else:
+            error_msg = "Invalid email index"
+            client_socket.send(cipher.encrypt(error_msg.encode().ljust(16)))
 
     def start(self):
         """ Start up the server """
@@ -132,6 +212,7 @@ class EmailServer:
 
         while True:
             client_socket, client_address = server_socket.accept()
+
             # Fork for each client connection
             pid = os.fork()
             if pid == 0:  # Child process
