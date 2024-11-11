@@ -37,9 +37,10 @@ server over a TCP connection.
 
 ## How to utilize the Makefile functionality
 
-- Clean everything: `$ make clean`
-- Generate new keys and setup: `$ make setup`
-- Do both (clean and setup): `$ make all`
+- Clean all generated files: `$ make clean`
+- Create new JSON file with default credentials: `$ make json`
+- Generate new keys based on JSON file contents: `$ make keys`
+- Create everything (create default JSON file and generate keys): `$ make all`
 - Run the server: `$ make run-server`
 - Run a client session: `$ make run-client SERVER=localhost USERNAME=client1`
-- Check what files currently exist: `$ make status`
+- Check which files currently exist: `$ make status`

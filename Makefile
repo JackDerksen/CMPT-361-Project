@@ -4,15 +4,18 @@ PEM_FILES = $(wildcard *.pem)
 CLIENT_DIRS = $(wildcard client*/)
 
 # Default target
-all: clean setup
+all: clean json keys
 
-# Create user_pass.json file
-user_pass.json:
+# Create only the json file
+json:
 	@echo "Creating user_pass.json..."
-	@echo '{\n    "client1": "password1",\n    "client2": "password2",\n    "client3": "password3",\n    "client4": "password4",\n    "client5": "password5"\n}' > user_pass.json
+	@echo '{"client1": "password1", "client2": "password2", "client3": "password3", "client4": "password4", "client5": "password5"}' > user_pass.json
+	@echo "Created user_pass.json with default credentials"
+	@echo "You can modify the passwords in user_pass.json before running 'make setup'"
 
 # Set up the system by running key generator
-setup: user_pass.json
+keys: user_pass.json
+	@echo "Generating keys based on user_pass.json..."
 	$(PYTHON) key_generator.py
 
 # Clean up all generated files
@@ -21,6 +24,7 @@ clean:
 	rm -rf client*/
 	rm -rf __pycache__/
 	rm -f user_pass.json
+	@echo "Cleaned all generated files"
 
 # Run the server
 run-server:
@@ -39,4 +43,4 @@ status:
 	@echo "\nClient Directories:"
 	@ls -d client*/ 2>/dev/null || echo "No client directories found"
 
-.PHONY: all clean setup run-server run-client status
+.PHONY: all clean json keys run-server run-client status
