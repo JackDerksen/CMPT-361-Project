@@ -1,6 +1,5 @@
 import socket
 import sys
-import os
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, AES
 
@@ -55,9 +54,9 @@ class EmailClient:
             self.socket.send(encrypted_ack)
             return True
 
-        except:
+        except ValueError as e:
             # If decryption fails, it's an error message
-            print(f"{response.decode()}\nTerminating.")
+            print(f"{response.decode()}\nTerminating. Error: {e}")
             return False
 
     def create_email(self):
@@ -65,7 +64,7 @@ class EmailClient:
 
         # Wait for server prompt
         encrypted_prompt = self.socket.recv(1024)
-        prompt = self.cipher.decrypt(encrypted_prompt).strip().decode()
+        self.cipher.decrypt(encrypted_prompt)
 
         # Get email details
         to = input("Enter recipient usernames (separated by ';'): ")
@@ -125,7 +124,7 @@ class EmailClient:
 
         # Receive server request
         encrypted_request = self.socket.recv(1024)
-        request = self.cipher.decrypt(encrypted_request).strip().decode()
+        self.cipher.decrypt(encrypted_request)
 
         # Send email index
         index = input("Enter the email index to view: ")
