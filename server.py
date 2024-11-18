@@ -51,8 +51,7 @@ class EmailServer:
             # Verify credentials
             if not self.verify_credentials(username, password):
                 client_socket.send("Invalid username or password".encode())
-                print(f"The received client information: {
-                      username} is invalid (Connection Terminated).")
+                print(f"The received client information: {username} is invalid (Connection Terminated).")
                 return
 
             # Generate and send a symmetric key
@@ -96,8 +95,7 @@ Choice:
                 elif choice == "3":
                     self.handle_view_email(client_socket, cipher, username)
                 else:
-                    print(f"Invalid choice, terminating connection with {
-                        username}.")
+                    print(f"Invalid choice, terminating connection with {username}.")
                     break
 
         finally:
@@ -145,8 +143,7 @@ Choice:
             with open(filename, "w") as f:
                 f.write(email_with_time)
 
-        print(f"An email from {sender} is sent to {', '.join(
-            recipients)} has a content length of {content_length}")
+        print(f"An email from {sender} is sent to {', '.join(recipients)} has a content length of {content_length}")
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """ Handle inbox viewing protocol for client """
