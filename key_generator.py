@@ -51,12 +51,6 @@ def generate_key_pair(username):
 def main():
     """
     Call key generation function for server and client. Display generation status.
-
-    Input:
-    None
-
-    Output:
-    None
     """
     # Generate keys for server
     print("Generating server keys...")
