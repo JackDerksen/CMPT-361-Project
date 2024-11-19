@@ -1,17 +1,46 @@
+"""
+Program:
+client.py
+
+Purpose:
+Perform all client-side operations for email server
+
+Authors:
+Jack Derksen
+Nolan Schlacht
+De Xie
+
+Last Updated:
+19/11/2024
+"""
+
 import socket
 import sys
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, AES
 
-
 class EmailClient:
+    """
+    Class for email client containing methods to perform client actions
+    """
+
     def __init__(self, server_host, username):
+        """
+        Initialize EmailClient object
+
+        Properties:
+        self.server_host - Name of server client is connecting to
+        self.username - Client username
+        self.load_keys() - Acquire client private key and server public key 
+        """
         self.server_host = server_host
         self.username = username
         self.load_keys()
 
     def load_keys(self):
-        """ Load necessary keys """
+        """ 
+        Load client private key and server public key
+        """
 
         # Load client's private key
         with open(f"{self.username}_private.pem", "rb") as f:
@@ -188,14 +217,17 @@ class EmailClient:
 def main():
     """ Start client """
 
+    # Invalid number of command line arguments
     if len(sys.argv) != 3:
         print("Usage: python client.py <server_host> <username>")
         sys.exit(1)
 
+    # Extracts server name and username from command line arguments
     server_host = sys.argv[1]
     username = sys.argv[2]
 
     try:
+        # Create client object and run
         client = EmailClient(server_host, username)
         client.run()
     except KeyboardInterrupt:
