@@ -12,6 +12,9 @@ De Xie
 
 Last Updated:
 19/11/2024
+
+TO-DO:
+    - Maybe create a property for socket number like in server
 """
 
 import socket
@@ -42,12 +45,12 @@ class EmailClient:
         Load client private key and server public key
         """
 
-        # Load client's private key
+        # Load client's private key and assign to property
         with open(f"{self.username}_private.pem", "rb") as f:
             private_key = RSA.import_key(f.read())
             self.private_cipher = PKCS1_OAEP.new(private_key)
 
-        # Load server's public key
+        # Load server's public key and assign to property
         with open("server_public.pem", "rb") as f:
             server_key = RSA.import_key(f.read())
             self.server_cipher = PKCS1_OAEP.new(server_key)
@@ -64,7 +67,7 @@ class EmailClient:
         # Get credentials from user
         password = input("Enter password: ")
 
-        # Encrypt credentials
+        # Encrypt credentials and send to server
         credentials = f"{self.username}:{password}"
         encrypted_credentials = self.server_cipher.encrypt(
             credentials.encode())
