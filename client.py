@@ -1,24 +1,56 @@
+"""
+Program:
+client.py
+
+Purpose:
+Perform all client-side operations for email server
+
+Authors:
+Jack Derksen
+Nolan Schlacht
+De Xie
+
+Last Updated:
+19/11/2024
+
+TO-DO:
+    - Maybe create a property for socket number like in server
+"""
+
 import socket
 import sys
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, AES
 
-
 class EmailClient:
+    """
+    Class for email client containing methods to perform client actions
+    """
+
     def __init__(self, server_host, username):
+        """
+        Initialize EmailClient object
+
+        Properties:
+        self.server_host - Name of server client is connecting to
+        self.username - Client username
+        self.load_keys() - Acquire client private key and server public key 
+        """
         self.server_host = server_host
         self.username = username
         self.load_keys()
 
     def load_keys(self):
-        """ Load necessary keys """
+        """ 
+        Load client private key and server public key
+        """
 
-        # Load client's private key
+        # Load client's private key and assign to property
         with open(f"{self.username}_private.pem", "rb") as f:
             private_key = RSA.import_key(f.read())
             self.private_cipher = PKCS1_OAEP.new(private_key)
 
-        # Load server's public key
+        # Load server's public key and assign to property
         with open("server_public.pem", "rb") as f:
             server_key = RSA.import_key(f.read())
             self.server_cipher = PKCS1_OAEP.new(server_key)
@@ -32,16 +64,16 @@ class EmailClient:
     def authenticate(self):
         """ Perform server authentication """
 
-        # Get credentials from user
+        # Get credentials from user (password)
         password = input("Enter password: ")
 
-        # Encrypt credentials
+        # Encrypt credentials and send to server
         credentials = f"{self.username}:{password}"
         encrypted_credentials = self.server_cipher.encrypt(
             credentials.encode())
         self.socket.send(encrypted_credentials)
 
-        # Get server response
+        # Receive encrypted symmetric key from server
         response = self.socket.recv(1024)
 
         try:
@@ -66,8 +98,9 @@ class EmailClient:
         encrypted_prompt = self.socket.recv(1024)
         self.cipher.decrypt(encrypted_prompt)
 
-        # Get email details
+        # Store email recipients
         to = input("Enter recipient usernames (separated by ';'): ")
+        # Store email title
         title = input("Enter email title (max 100 chars): ")
 
         # Validate title length
@@ -111,6 +144,7 @@ class EmailClient:
     def view_inbox(self):
         """ View inbox contents """
 
+        # Decrypt inbox contents from server and display to client
         encrypted_list = self.socket.recv(4096)
         inbox_list = self.cipher.decrypt(encrypted_list).strip().decode()
         print("\nInbox contents:")
@@ -148,6 +182,7 @@ class EmailClient:
 
         try:
             self.connect()
+            # Password was invalid or could not decrypt symmetric key
             if not self.authenticate():
                 return
 
@@ -159,6 +194,7 @@ class EmailClient:
 
                 # Get user choice
                 choice = input()
+                # Repeats request until valid input is provided
                 while choice not in ['1', '2', '3', '4']:
                     print("Invalid choice. Please enter 1, 2, 3, or 4.")
                     choice = input()
@@ -168,13 +204,16 @@ class EmailClient:
                     choice.encode().ljust(16))
                 self.socket.send(encrypted_choice)
 
-                # Handle user choice
+                # Client creates and email
                 if choice == '1':
                     self.create_email()
+                # Client views inbox
                 elif choice == '2':
                     self.view_inbox()
+                # Client opens and email
                 elif choice == '3':
                     self.view_email()
+                # Client terminates connection
                 elif choice == '4':
                     self.terminate_connection()
                     break
@@ -188,14 +227,17 @@ class EmailClient:
 def main():
     """ Start client """
 
+    # Invalid number of command line arguments
     if len(sys.argv) != 3:
         print("Usage: python client.py <server_host> <username>")
         sys.exit(1)
 
+    # Extracts server name and username from command line arguments
     server_host = sys.argv[1]
     username = sys.argv[2]
 
     try:
+        # Create client object and run
         client = EmailClient(server_host, username)
         client.run()
     except KeyboardInterrupt:

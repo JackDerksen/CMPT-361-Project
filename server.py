@@ -1,3 +1,22 @@
+"""
+Program:
+server.py
+
+Purpose:
+Perform all server-side operations for email server
+
+Authors:
+Jack Derksen
+Nolan Schlacht
+De Xie
+
+Last Updated:
+19/11/2024
+
+TO-DO:
+    - 
+"""
+
 import json
 import socket
 import os
@@ -10,29 +29,53 @@ import glob
 
 
 class EmailServer:
+    """
+    Class for email server containing methods to perform server functions.
+    """
+
     def __init__(self, port=13000):
+        """
+        Initialize EmailServer object.
+
+        Properties:
+        self.port - Always sets port number to 13000
+        self.load_server_keys() - Acquires server private key 
+        self.load_user_credentials() - Acquire user credentials
+        self.load_client_public_keys() - Acquire client public keys
+        """
+
         self.port = port
         self.load_server_keys()
         self.load_user_credentials()
         self.load_client_public_keys()
 
     def load_server_keys(self):
-        """ Load server's public and private keys """
+        """
+        Load server's public and private keys 
+        """
 
+        # Open server private key file
         with open("server_private.pem", "rb") as f:
             self.private_key = RSA.import_key(f.read())
+        # Create cipher property for private key
         self.private_cipher = PKCS1_OAEP.new(self.private_key)
 
     def load_user_credentials(self):
-        """ Load client credentials from JSON file """
+        """
+        Load client credentials from JSON file
+        """
 
         with open("user_pass.json", "r") as f:
             self.user_credentials = json.load(f)
 
     def load_client_public_keys(self):
-        """ Load public keys for all known clients """
+        """
+        Load public keys for all known clients
+        """
 
+        # Create empty dictionary propery to store client public keys
         self.client_public_keys = {}
+        # Open client public key file for every user
         for username in self.user_credentials.keys():
             with open(f"{username}_public.pem", "rb") as f:
                 key = RSA.import_key(f.read())
@@ -40,19 +83,24 @@ class EmailServer:
                 self.client_public_keys[username] = PKCS1_OAEP.new(key)
 
     def handle_client(self, client_socket, client_address):
-        """ Handle individual client connection """
+        """ 
+        Handles main operations with clients
+
+        Inputs:
+        client_socket - Connection socket used by client and server
+        client_address - Address of client 
+        """
 
         try:
-            # Authentication
+            # Acquire encrypted username and password of client
             encrypted_creds = client_socket.recv(1024)
             decrypted_creds = self.private_cipher.decrypt(encrypted_creds)
             username, password = decrypted_creds.decode().split(':')
 
-            # Verify credentials
+            # Verify and terminate connection if credentials invalid
             if not self.verify_credentials(username, password):
                 client_socket.send("Invalid username or password".encode())
-                print(f"The received client information: {
-                      username} is invalid (Connection Terminated).")
+                print(f"The received client information: {username} is invalid (Connection Terminated).")
                 return
 
             # Generate and send a symmetric key
@@ -67,6 +115,8 @@ class EmailServer:
             cipher = AES.new(sym_key, AES.MODE_ECB)
             encrypted_ack = client_socket.recv(1024)
             decrypted_ack = cipher.decrypt(encrypted_ack).strip()
+
+            # Did not receive the proper acknowledgement
             if decrypted_ack != b"OK":
                 return
 
@@ -89,28 +139,49 @@ Choice:
                 encrypted_choice = client_socket.recv(1024)
                 choice = cipher.decrypt(encrypted_choice).strip().decode()
 
+                # Create and send email
                 if choice == "1":
                     self.handle_send_email(client_socket, cipher, username)
+                # Display inbox
                 elif choice == "2":
                     self.handle_view_inbox(client_socket, cipher, username)
+                # Display email
                 elif choice == "3":
                     self.handle_view_email(client_socket, cipher, username)
+                # Closes connection
                 else:
-                    print(f"Invalid choice, terminating connection with {
-                        username}.")
+                    print(f"Invalid choice, terminating connection with {username}.")
                     break
 
+        # Close connection socket when server loop ends
         finally:
             client_socket.close()
 
     def verify_credentials(self, username, password):
-        """ Verify client credentials, obviously """
+        """
+        Verify client credentials
+
+        Input:
+        username - string of client username
+        password - string of client password
+
+        Output:
+        Boolean. True if client username and matching password exist in
+        JSON file. False if no credentials match.
+        """
 
         return (username in self.user_credentials and
                 self.user_credentials[username] == password)
 
     def handle_send_email(self, client_socket, cipher, sender):
-        """ Handle email sending protocol for client """
+        """
+        Handle email sending protocol for client 
+
+        Input:
+        client_socket - Connection socket between server and client
+        cipher - Encryption/decryption cipher for outgoing/incoming messages
+        sender - Username of client sending email 
+        """
 
         # Send request for email
         encrypted_msg = cipher.encrypt(b"Send the email".ljust(16))
@@ -137,19 +208,26 @@ Choice:
             f"{lines[5]}"    # Content
         )
 
-        # Save for each recipient
+        # Write email to client account (directory)
         title = lines[2].split(': ')[1]
         for recipient in recipients:
             recipient = recipient.strip()
+            # May add /client/ to start in restructuring
             filename = f"{recipient}/{sender}_{title}.txt"
             with open(filename, "w") as f:
                 f.write(email_with_time)
 
-        print(f"An email from {sender} is sent to {', '.join(
-            recipients)} has a content length of {content_length}")
+        print(f"An email from {sender} is sent to {', '.join(recipients)} has a content length of {content_length}")
 
     def handle_view_inbox(self, client_socket, cipher, username):
-        """ Handle inbox viewing protocol for client """
+        """
+        Handle inbox viewing protocol for client 
+
+        Input:
+        client_socket - Connection socket between server and client
+        cipher - Encryption/decryption cipher for outgoing/incoming messages
+        sender - Username of client sending email 
+        """
 
         # Get all emails in the user's directory
         emails = []
@@ -192,6 +270,7 @@ Choice:
         emails = sorted(glob.glob(f"{username}/*_*.txt"),
                         key=lambda x: os.path.getmtime(x), reverse=True)
 
+        # For a valid email index
         if 0 <= index - 1 < len(emails):
             with open(emails[index-1], "r") as f:
                 content = f.read()
@@ -203,23 +282,30 @@ Choice:
             client_socket.send(cipher.encrypt(error_msg.encode().ljust(16)))
 
     def start(self):
-        """ Start up the server """
-
+        """ 
+        Start up the server 
+        """
+        
+        # Server listens on specified socket for clients
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.bind(('', self.port))
         server_socket.listen(5)
         print(f"Server listening on port {self.port}")
 
         while True:
+            # Acquire connection socket and address with client
             client_socket, client_address = server_socket.accept()
 
             # Fork for each client connection
             pid = os.fork()
-            if pid == 0:  # Child process
+            # Child process, begin client operations
+            if pid == 0:
                 server_socket.close()
                 self.handle_client(client_socket, client_address)
                 sys.exit(0)
-            else:  # Parent process
+            # Parent process, close connection socket and wait for further
+            # connections
+            else:  
                 client_socket.close()
 
 
