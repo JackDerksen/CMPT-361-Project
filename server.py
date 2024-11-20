@@ -14,7 +14,7 @@ Last Updated:
 19/11/2024
 
 TO-DO:
-    -
+    - 
 """
 
 import json
@@ -115,6 +115,8 @@ class EmailServer:
             cipher = AES.new(sym_key, AES.MODE_ECB)
             encrypted_ack = client_socket.recv(1024)
             decrypted_ack = cipher.decrypt(encrypted_ack).strip()
+
+            # Did not receive the proper acknowledgement
             if decrypted_ack != b"OK":
                 return
 
@@ -137,27 +139,49 @@ Choice:
                 encrypted_choice = client_socket.recv(1024)
                 choice = cipher.decrypt(encrypted_choice).strip().decode()
 
+                # Create and send email
                 if choice == "1":
                     self.handle_send_email(client_socket, cipher, username)
+                # Display inbox
                 elif choice == "2":
                     self.handle_view_inbox(client_socket, cipher, username)
+                # Display email
                 elif choice == "3":
                     self.handle_view_email(client_socket, cipher, username)
+                # Closes connection
                 else:
                     print(f"Invalid choice, terminating connection with {username}.")
                     break
 
+        # Close connection socket when server loop ends
         finally:
             client_socket.close()
 
     def verify_credentials(self, username, password):
-        """ Verify client credentials, obviously """
+        """
+        Verify client credentials
+
+        Input:
+        username - string of client username
+        password - string of client password
+
+        Output:
+        Boolean. True if client username and matching password exist in
+        JSON file. False if no credentials match.
+        """
 
         return (username in self.user_credentials and
                 self.user_credentials[username] == password)
 
     def handle_send_email(self, client_socket, cipher, sender):
-        """ Handle email sending protocol for client """
+        """
+        Handle email sending protocol for client 
+
+        Input:
+        client_socket - Connection socket between server and client
+        cipher - Encryption/decryption cipher for outgoing/incoming messages
+        sender - Username of client sending email 
+        """
 
         # Send request for email
         encrypted_msg = cipher.encrypt(b"Send the email".ljust(16))
@@ -184,10 +208,11 @@ Choice:
             f"{lines[5]}"    # Content
         )
 
-        # Save for each recipient
+        # Write email to client account (directory)
         title = lines[2].split(': ')[1]
         for recipient in recipients:
             recipient = recipient.strip()
+            # May add /client/ to start in restructuring
             filename = f"{recipient}/{sender}_{title}.txt"
             with open(filename, "w") as f:
                 f.write(email_with_time)
@@ -195,7 +220,14 @@ Choice:
         print(f"An email from {sender} is sent to {', '.join(recipients)} has a content length of {content_length}")
 
     def handle_view_inbox(self, client_socket, cipher, username):
-        """ Handle inbox viewing protocol for client """
+        """
+        Handle inbox viewing protocol for client 
+
+        Input:
+        client_socket - Connection socket between server and client
+        cipher - Encryption/decryption cipher for outgoing/incoming messages
+        sender - Username of client sending email 
+        """
 
         # Get all emails in the user's directory
         emails = []
@@ -238,6 +270,7 @@ Choice:
         emails = sorted(glob.glob(f"{username}/*_*.txt"),
                         key=lambda x: os.path.getmtime(x), reverse=True)
 
+        # For a valid email index
         if 0 <= index - 1 < len(emails):
             with open(emails[index-1], "r") as f:
                 content = f.read()

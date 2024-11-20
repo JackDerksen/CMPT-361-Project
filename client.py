@@ -64,7 +64,7 @@ class EmailClient:
     def authenticate(self):
         """ Perform server authentication """
 
-        # Get credentials from user
+        # Get credentials from user (password)
         password = input("Enter password: ")
 
         # Encrypt credentials and send to server
@@ -73,7 +73,7 @@ class EmailClient:
             credentials.encode())
         self.socket.send(encrypted_credentials)
 
-        # Get server response
+        # Receive encrypted symmetric key from server
         response = self.socket.recv(1024)
 
         try:
@@ -98,8 +98,9 @@ class EmailClient:
         encrypted_prompt = self.socket.recv(1024)
         self.cipher.decrypt(encrypted_prompt)
 
-        # Get email details
+        # Store email recipients
         to = input("Enter recipient usernames (separated by ';'): ")
+        # Store email title
         title = input("Enter email title (max 100 chars): ")
 
         # Validate title length
@@ -143,6 +144,7 @@ class EmailClient:
     def view_inbox(self):
         """ View inbox contents """
 
+        # Decrypt inbox contents from server and display to client
         encrypted_list = self.socket.recv(4096)
         inbox_list = self.cipher.decrypt(encrypted_list).strip().decode()
         print("\nInbox contents:")
@@ -180,6 +182,7 @@ class EmailClient:
 
         try:
             self.connect()
+            # Password was invalid or could not decrypt symmetric key
             if not self.authenticate():
                 return
 
@@ -191,6 +194,7 @@ class EmailClient:
 
                 # Get user choice
                 choice = input()
+                # Repeats request until valid input is provided
                 while choice not in ['1', '2', '3', '4']:
                     print("Invalid choice. Please enter 1, 2, 3, or 4.")
                     choice = input()
@@ -200,13 +204,16 @@ class EmailClient:
                     choice.encode().ljust(16))
                 self.socket.send(encrypted_choice)
 
-                # Handle user choice
+                # Client creates and email
                 if choice == '1':
                     self.create_email()
+                # Client views inbox
                 elif choice == '2':
                     self.view_inbox()
+                # Client opens and email
                 elif choice == '3':
                     self.view_email()
+                # Client terminates connection
                 elif choice == '4':
                     self.terminate_connection()
                     break
