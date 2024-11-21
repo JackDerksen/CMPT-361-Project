@@ -30,23 +30,29 @@ This is a **reasonably secure** SMTP application that works between 5 clients an
 
 This is what the directory structure should look like at this point:
 
-project_root/ <br />
-├── Makefile <br />
-├── client_files/ <br />
-│   ├── client.py <br />
-│   └── key_generator.py <br />
-├── server/ <br />
-│   ├── server.py <br />
-│   ├── server_private.pem <br />
-│   ├── server_public.pem <br />
-│   └── user_pass.json <br />
-└── client*/ <br />
-    ├── client.py <br />
-    ├── key_generator.py <br />
-    ├── server_public.pem <br />
-    ├── client_private.pem <br />
-    ├── client_public.pem <br />
-    └── files/ <br />
+Project root/
+|-- Makefile
+|-- README.md
+|-- client1
+|   |-- client.py
+|   |-- client1_private.pem
+|   |-- client1_public.pem
+|   |-- files/
+|   |-- key_generator.py
+|   `-- server_public.pem
+|-- client_files
+|   |-- client.py
+|   `-- key_generator.py
+`-- server
+    |-- client1
+    |   |-- client1_public.pem
+    |   `-- inbox
+    |       `-- <client emails>
+    |-- key_generator.py
+    |-- server.py
+    |-- server_private.pem
+    |-- server_public.pem
+    `-- user_pass.json
 
 4. Navigate to the server directory and start the server program with `$ python3 server.py`
 
