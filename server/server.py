@@ -206,7 +206,7 @@ class EmailServer:
             # Main service loop
             while True:
                 menu = (
-                    "\nSelect the operation:\n"
+                    "\n\nSelect the operation:\n"
                     "1) Create and send an email\n"
                     "2) Display the inbox list\n"
                     "3) Display the email contents\n"

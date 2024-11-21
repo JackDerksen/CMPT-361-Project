@@ -30,12 +30,16 @@ client:
 		cp $(CLIENT_FILES_DIR)/client.py $(CLIENT_NAME)/; \
 		cp $(CLIENT_FILES_DIR)/key_generator.py $(CLIENT_NAME)/; \
 		cp $(SERVER_DIR)/server_public.pem $(CLIENT_NAME)/; \
+		echo "Generating keys for $(CLIENT_NAME)..."; \
+		cd $(CLIENT_NAME) && python3 key_generator.py; \
 	else \
 		echo "Populating existing client directory: $(CLIENT_NAME)"; \
 		mkdir -p $(CLIENT_NAME)/files; \
 		cp -f $(CLIENT_FILES_DIR)/client.py $(CLIENT_NAME)/; \
 		cp -f $(CLIENT_FILES_DIR)/key_generator.py $(CLIENT_NAME)/; \
 		cp -f $(SERVER_DIR)/server_public.pem $(CLIENT_NAME)/; \
+		echo "Regenerating keys for $(CLIENT_NAME)..."; \
+		cd $(CLIENT_NAME) && python3 key_generator.py; \
 	fi
 	@echo "Done setting up $(CLIENT_NAME)"
 
