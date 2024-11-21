@@ -1,46 +1,90 @@
-# Variables
-PYTHON = python3
-PEM_FILES = $(wildcard *.pem)
-CLIENT_DIRS = $(wildcard client*/)
+##################################################################
+# THIS MAKEFILE IS AI-GENERATED, INTENDED FOR TESTING PURPOSES!! #
+##################################################################
+
+# Directories
+SERVER_DIR := server
+CLIENT_DIRS := client1 client2 client3 client4 client5
+CLIENT_FILES_DIR := client_files
 
 # Default target
-all: clean json keys
+.PHONY: all
+all:
+	@echo "Available commands:"
+	@echo "  make client <clientname>  - Create/populate client directory"
+	@echo "  make pubkey <clientname>  - Copy server's public key to client directory"
+	@echo "  make clean                - Clean all test files"
+	@echo "  make cleanall             - Remove all client directories and their server inboxes"
 
-# Create only the json file
-json:
-	@echo "Creating user_pass.json..."
-	@echo '{"client1": "password1", "client2": "password2", "client3": "password3", "client4": "password4", "client5": "password5"}' > user_pass.json
-	@echo "Created user_pass.json with default credentials"
-	@echo "You can modify the passwords in user_pass.json before running 'make setup'"
+# Target to create/populate client directory
+.PHONY: client
+client:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Usage: make client <clientname>"; \
+		exit 1; \
+	fi
+	$(eval CLIENT_NAME := $(filter-out $@,$(MAKECMDGOALS)))
+	@if [ ! -d "$(CLIENT_NAME)" ]; then \
+		echo "Creating new client directory: $(CLIENT_NAME)"; \
+		mkdir -p $(CLIENT_NAME)/files; \
+		cp $(CLIENT_FILES_DIR)/client.py $(CLIENT_NAME)/; \
+		cp $(CLIENT_FILES_DIR)/key_generator.py $(CLIENT_NAME)/; \
+		cp $(SERVER_DIR)/server_public.pem $(CLIENT_NAME)/; \
+	else \
+		echo "Populating existing client directory: $(CLIENT_NAME)"; \
+		mkdir -p $(CLIENT_NAME)/files; \
+		cp -f $(CLIENT_FILES_DIR)/client.py $(CLIENT_NAME)/; \
+		cp -f $(CLIENT_FILES_DIR)/key_generator.py $(CLIENT_NAME)/; \
+		cp -f $(SERVER_DIR)/server_public.pem $(CLIENT_NAME)/; \
+	fi
+	@echo "Done setting up $(CLIENT_NAME)"
 
-# Set up the system by running key generator
-keys: user_pass.json
-	@echo "Generating keys based on user_pass.json..."
-	$(PYTHON) key_generator.py
+# Target to copy server's public key to client directory
+.PHONY: pubkey
+pubkey:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		echo "Usage: make pubkey <clientname>"; \
+		exit 1; \
+	fi
+	$(eval CLIENT_NAME := $(filter-out $@,$(MAKECMDGOALS)))
+	@if [ ! -d "$(CLIENT_NAME)" ]; then \
+		echo "Error: Client directory $(CLIENT_NAME) does not exist"; \
+		exit 1; \
+	fi
+	@echo "Copying server's public key to $(CLIENT_NAME)"
+	@cp -f $(SERVER_DIR)/server_public.pem $(CLIENT_NAME)/
+	@echo "Done"
 
-# Clean up all generated files
+# Clean test files but keep directories
+.PHONY: clean
 clean:
-	rm -f *.pem
-	rm -rf client*/
-	rm -rf __pycache__/
-	rm -f user_pass.json
-	@echo "Cleaned all generated files"
+	@echo "Cleaning test files..."
+	@for dir in $(CLIENT_DIRS); do \
+		if [ -d "$$dir" ]; then \
+			echo "Cleaning $$dir files directory..."; \
+			rm -f $$dir/files/*; \
+			echo "Removing $$dir keys..."; \
+			rm -f $$dir/*_private.pem $$dir/*_public.pem; \
+			echo "Cleaning server inbox for $$dir..."; \
+			rm -f $(SERVER_DIR)/$$dir/inbox/*; \
+		fi \
+	done
+	@echo "Clean complete"
 
-# Run the server
-run-server:
-	$(PYTHON) server.py
+# Remove all client directories and their server inboxes
+.PHONY: cleanall
+cleanall:
+	@echo "Removing all client directories and server inboxes..."
+	@for dir in $(CLIENT_DIRS); do \
+		if [ -d "$$dir" ]; then \
+			echo "Removing $$dir..."; \
+			rm -rf $$dir; \
+			echo "Removing server inbox for $$dir..."; \
+			rm -rf $(SERVER_DIR)/$$dir; \
+		fi \
+	done
+	@echo "Clean complete"
 
-# Run a client (usage: make run-client SERVER=localhost USERNAME=client1)
-run-client:
-	$(PYTHON) client.py $(SERVER) $(USERNAME)
-
-# Show current .pem files and client directories
-status:
-	@echo "Configuration Files:"
-	@ls -l user_pass.json 2>/dev/null || echo "No user_pass.json found"
-	@echo "\nPEM Files:"
-	@ls -l *.pem 2>/dev/null || echo "No .pem files found"
-	@echo "\nClient Directories:"
-	@ls -d client*/ 2>/dev/null || echo "No client directories found"
-
-.PHONY: all clean json keys run-server run-client status
+# Handle unknown arguments
+%:
+	@:
