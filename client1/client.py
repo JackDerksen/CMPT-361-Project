@@ -1,3 +1,22 @@
+"""
+Program:
+client.py
+
+Purpose:
+Perform all client-side operations for email server
+
+Authors:
+Jack Derksen
+Nolan Schlacht
+De Xie
+
+Last Updated:
+11/21/2024
+
+TO-DO:
+    - Maybe create a property for socket number like in server
+"""
+
 import socket
 import sys
 import os
