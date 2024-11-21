@@ -41,12 +41,12 @@ project_root/ <br />
 │   ├── server_public.pem <br />
 │   └── user_pass.json <br />
 └── client*/ <br />
-├── client.py <br />
-├── key_generator.py <br />
-├── server_public.pem <br />
-├── client_private.pem <br />
-├── client_public.pem <br />
-└── files/ <br />
+    ├── client.py <br />
+    ├── key_generator.py <br />
+    ├── server_public.pem <br />
+    ├── client_private.pem <br />
+    ├── client_public.pem <br />
+    └── files/ <br />
 
 4. Navigate to the server directory and start the server program with `$ python3 server.py`
 
