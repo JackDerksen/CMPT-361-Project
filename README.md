@@ -28,32 +28,6 @@ This is a **reasonably secure** SMTP application that works between 5 clients an
 
 3. Ensure an up-to-date copy of the server's public key exists in the directory of the client you wish to use. Also, generate a public/private client key pair if they do not exist already. Just like with the server, run the `key_generator.py` script from within that client's directory.
 
-This is what the directory structure should look like at this point:
-
-Project root/ <br />
-|-- Makefile <br />
-|-- README.md <br />
-|-- client1 <br />
-|   |-- client.py <br />
-|   |-- client1_private.pem <br />
-|   |-- client1_public.pem <br />
-|   |-- files/ <br />
-|   |-- key_generator.py <br />
-|   |-- server_public.pem <br />
-|-- client_files <br />
-|   |-- client.py <br />
-|   |-- key_generator.py <br />
-|-- server <br />
-    |-- client1 <br />
-    |   |-- client1_public.pem <br />
-    |   |-- inbox <br />
-    |       |-- client emails <br />
-    |-- key_generator.py <br />
-    |-- server.py <br />
-    |-- server_private.pem <br />
-    |-- server_public.pem <br />
-    |-- user_pass.json <br />
-
 4. Navigate to the server directory and start the server program with `$ python3 server.py`
 
 5. On a separate machine or a separate terminal instance, navigate to the directory of the client you would like to use. Start their client program with`$ python3 client.py`. Follow the prompts to connect to the server. If it is the first time that client has connected to the server, they will automatically exchange their public keys with each other for the purposes of encrypting/decrypting messages.
