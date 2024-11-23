@@ -257,7 +257,7 @@ class EmailClient:
             while True:
                 # Receive and decrypt menu
                 encrypted_menu = self.socket.recv(4096)
-                menu = self.cipher.decrypt(encrypted_menu).strip().decode()
+                menu = self.cipher.decrypt(encrypted_menu).decode()
                 print(menu, end='')
 
                 # Get user choice

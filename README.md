@@ -12,7 +12,7 @@ This is a **reasonably secure** SMTP application that works between 5 clients an
 
 ## How to use the program
 
-1. First, ensure that the user_pass.json file (located in the server directory) is populated with usernames and passwords. It should look something like:
+1. First, ensure that the user_pass.json file (located in the server directory) is populated with usernames and passwords.It should look something like:
 
 ```json
 {
@@ -35,7 +35,7 @@ This is a **reasonably secure** SMTP application that works between 5 clients an
 6. If you wish to send a message from one client to another, ensure that recipient client's directory is also properly populated (ie. that it also contains an up-to-date copy of the server's public key, and that their own client public/private key pair has been generated).
 
 
-## How to use the makefile
+## How to utilize the Makefile functionality
 
 The makefile in this project only exists for the purposes of testing and debugging, so we don't have to manually add and move all of this stuff around. Its use-cases obviously wouldn't make sense the way the application would be used in real life, with each client having a completely isolated machine with no view of the overall file structure.
 
