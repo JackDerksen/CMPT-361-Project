@@ -11,10 +11,10 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-19/11/2024
+11/23/2024
 
 TO-DO:
-    - 
+    -
 """
 
 import json
@@ -97,8 +97,7 @@ class EmailServer:
             - inbox/ subdirectory for storing emails
         """
         client_dir = os.path.join(username)
-        inbox_dir = os.path.join(client_dir, "inbox")
-        os.makedirs(inbox_dir, exist_ok=True)
+        os.makedirs(client_dir, exist_ok=True)
         return client_dir
 
     def store_client_public_key(self, username, public_key_data):
@@ -112,12 +111,16 @@ class EmailServer:
         Stores key in client's directory and initializes PKCS1_OAEP cipher
         for encryption of messages to this client.
         """
-        client_dir = self.setup_client_directory(username)
-        key_path = os.path.join(client_dir, f"{username}_public.pem")
-
+        # Store in server root directory
+        key_path = f"{username}_public.pem"
         with open(key_path, "wb") as f:
             f.write(public_key_data)
 
+        # Setup inbox directory
+        client_dir = os.path.join(username)
+        os.makedirs(client_dir, exist_ok=True)
+
+        # Load into memory
         key = RSA.import_key(public_key_data)
         self.client_public_keys[username] = PKCS1_OAEP.new(key)
 
@@ -134,7 +137,7 @@ class EmailServer:
         Loads existing client public key and initializes cipher for encryption.
         """
         if username not in self.client_public_keys:
-            key_path = os.path.join(username, f"{username}_public.pem")
+            key_path = f"{username}_public.pem"
 
             if not os.path.exists(key_path) or os.path.getsize(key_path) == 0:
                 return None
@@ -206,15 +209,16 @@ class EmailServer:
             # Main service loop
             while True:
                 menu = (
-                    "\n\nSelect the operation:\n"
+                    "\n\n"
+                    "Select the operation:\n"
                     "1) Create and send an email\n"
                     "2) Display the inbox list\n"
                     "3) Display the email contents\n"
                     "4) Terminate the connection\n"
                     "choice: "
                 )
-                encrypted_menu = cipher.encrypt(
-                    menu.encode().ljust((len(menu) // 16 + 1) * 16))
+                padded_menu = menu.encode().ljust((len(menu) // 16 + 1) * 16)
+                encrypted_menu = cipher.encrypt(padded_menu)
                 client_socket.send(encrypted_menu)
 
                 # Get client's choice
@@ -290,9 +294,10 @@ class EmailServer:
         title = lines[2].split(': ')[1]
         for recipient in recipients:
             recipient = recipient.strip()
-            inbox_path = os.path.join(
-                recipient, "inbox", f"{sender}_{title}.txt")
-            with open(inbox_path, "w") as f:
+
+            email_path = os.path.join(recipient, f"{sender}_{title}.txt")
+
+            with open(email_path, "w") as f:
                 f.write(email_with_time)
 
         print(f"An email from {sender} is sent to {
@@ -310,10 +315,9 @@ class EmailServer:
         Retrieves list of emails in client's inbox,
         sorts by timestamp, and sends encrypted list to client.
         """
-        inbox_path = os.path.join(username, "inbox")
         emails = []
 
-        for filepath in glob.glob(os.path.join(inbox_path, "*.txt")):
+        for filepath in glob.glob(os.path.join(username, "*.txt")):
             with open(filepath, "r") as f:
                 content = f.read()
                 lines = content.split('\n')
@@ -361,9 +365,8 @@ class EmailServer:
         index = int(cipher.decrypt(encrypted_index).strip())
 
         # Get email content
-        inbox_path = os.path.join(username, "inbox")
         emails = sorted(
-            glob.glob(os.path.join(inbox_path, "*.txt")),
+            glob.glob(os.path.join(username, "*.txt")),
             key=lambda x: os.path.getmtime(x),
             reverse=True
         )
