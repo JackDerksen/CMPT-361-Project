@@ -263,14 +263,14 @@ class EmailServer:
     def handle_send_email(self, client_socket, cipher, sender):
         """
         Handle email sending protocol with client.
+        Receives encrypted email from client, adds timestamp,
+        and saves to each recipient's inbox directory.
 
         Parameters:
             client_socket: Socket connection to client
             cipher: AES cipher for this session
             sender (str): Username of sending client
 
-        Receives encrypted email from client, adds timestamp,
-        and saves to each recipient's inbox directory.
         """
         encrypted_msg = cipher.encrypt(b"Send the email".ljust(16))
         client_socket.send(encrypted_msg)
@@ -311,14 +311,14 @@ class EmailServer:
     def handle_view_inbox(self, client_socket, cipher, username):
         """
         Handle inbox viewing protocol with client.
+        Retrieves list of emails in client's inbox,
+        sorts by timestamp, and sends encrypted list to client.
 
         Parameters:
             client_socket: Socket connection to client
             cipher: AES cipher for this session
             username (str): Client's username
 
-        Retrieves list of emails in client's inbox,
-        sorts by timestamp, and sends encrypted list to client.
         """
         inbox_path = os.path.join(username, "inbox")
         emails = []
@@ -353,14 +353,14 @@ class EmailServer:
     def handle_view_email(self, client_socket, cipher, username):
         """
         Handle email viewing protocol with client.
+        Receives email index from client, retrieves corresponding
+        email from inbox, and sends encrypted content to client.
 
         Parameters:
             client_socket: Socket connection to client
             cipher: AES cipher for this session
             username (str): Client's username
 
-        Receives email index from client, retrieves corresponding
-        email from inbox, and sends encrypted content to client.
         """
         # Request email index
         request = cipher.encrypt(b"the server request email index".ljust(32))
