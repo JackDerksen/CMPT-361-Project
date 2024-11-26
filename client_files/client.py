@@ -57,7 +57,7 @@ class EmailClient:
                 self.server_cipher = PKCS1_OAEP.new(server_key)
 
         except FileNotFoundError:
-            print("Invalid username or password.")
+            print("Could not load needed resource/file.")
             print("Terminating.")
             sys.exit(1)
 
@@ -75,7 +75,7 @@ class EmailClient:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.server_host, 13000))
         except Exception:
-            print("Invalid username or password.")
+            print("Could not connect to server")
             print("Terminating.")
             sys.exit(1)
 
@@ -123,12 +123,12 @@ class EmailClient:
                 return True
 
             except Exception as _:
-                print("Invalid username or password.")
+                print("Auth Ack Socket Problem.")
                 print("Terminating.")
                 return False
 
         except Exception as _:
-            print("Invalid username or password.")
+            print("Auth Socket Problem.")
             print("Terminating.")
             return False
 
