@@ -185,8 +185,8 @@ class EmailServer:
             if not self.verify_credentials(username, password):
                 #print("DEBUG: Verification failed")
                 client_socket.send(b"Invalid username or password")
-                print(f"The received client information: {
-                      username} is invalid (Connection Terminated).")
+                print(f"The received client information: {username} is " + 
+                       "invalid (Connection Terminated).")
                 return
 
             # Check if we have the client's public key
@@ -309,8 +309,8 @@ class EmailServer:
             with open(email_path, "w") as f:
                 f.write(email_with_time)
 
-        print(f"An email from {sender} is sent to {
-              ';'.join(recipients)} has a content length of {content_length}")
+        print(f"An email from {sender} is sent to {';'.join(recipients)} has" +
+              f" a content length of {content_length}")
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """
