@@ -40,7 +40,7 @@ This is a **reasonably secure** SMTP application that works between 5 clients an
 The makefile in this project only exists for the purposes of testing and debugging, so we don't have to manually add and move all of this stuff around. Its use-cases obviously wouldn't make sense the way the application would be used in real life, with each client having a completely isolated machine with no view of the overall file structure.
 
 ### Available commands
-* `make client <clien tname>` - Create/populate a client directory
+* `make client <client name>` - Create/populate a client directory
 * `make pubkey <target client name>` - Copy server's public key to a client directory
 * `make clean` - Clean test files while preserving directory structure
 * `make cleanall` - Remove all client directories and their server inboxes
@@ -65,7 +65,7 @@ To clean out test files while preserving the directory structure, run `$ make cl
 
 - Remove all files from each client's files/ directory
 - Remove all client key files (*_private.pem, *_public.pem)
-- Clean out server-side inbox directories
+- Clean out server-side client inbox directories
 - Preserve the basic directory structure and program files
 
 ### Complete cleanup
