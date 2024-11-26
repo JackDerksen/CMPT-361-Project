@@ -50,7 +50,7 @@ class EmailServer:
 
     def load_server_keys(self):
         """
-        Load the server's public and private keys from files.
+        Load the server's private key from PEM file.
 
         Loads server_private.pem and initializes the PKCS1_OAEP cipher
         for decryption of client messages.
@@ -58,10 +58,14 @@ class EmailServer:
         Raises:
             SystemExit: If key files not found or invalid
         """
+
+        # Server private key file exist
         try:
             with open("server_private.pem", "rb") as f:
                 self.private_key = RSA.import_key(f.read())
                 self.private_cipher = PKCS1_OAEP.new(self.private_key)
+
+        # Server private key file does not exist or cannot be found
         except FileNotFoundError:
             print("Error: Server keys not found. Please run key_generator.py first.")
             sys.exit(1)
@@ -75,9 +79,12 @@ class EmailServer:
         Raises:
             SystemExit: If credentials file not found
         """
+
+        # JSON file for user credentials exists
         try:
             with open("user_pass.json", "r") as f:
                 self.user_credentials = json.load(f)
+        # JSON file for user credentials does not exist or cannot be found
         except FileNotFoundError:
             print("Error: user_pass.json not found.")
             sys.exit(1)
@@ -96,6 +103,7 @@ class EmailServer:
             - Client directory named after username
             - inbox/ subdirectory for storing emails
         """
+
         client_dir = os.path.join(username)
         os.makedirs(client_dir, exist_ok=True)
         return client_dir
@@ -175,7 +183,7 @@ class EmailServer:
 
             # Verify credentials
             if not self.verify_credentials(username, password):
-                print("DEBUG: Verification failed")
+                #print("DEBUG: Verification failed")
                 client_socket.send(b"Invalid username or password")
                 print(f"The received client information: {
                       username} is invalid (Connection Terminated).")
@@ -203,6 +211,7 @@ class EmailServer:
             encrypted_ack = client_socket.recv(1024)
             decrypted_ack = cipher.decrypt(encrypted_ack).strip()
 
+            
             if decrypted_ack != b"OK":
                 return
 
@@ -257,14 +266,14 @@ class EmailServer:
     def handle_send_email(self, client_socket, cipher, sender):
         """
         Handle email sending protocol with client.
+        Receives encrypted email from client, adds timestamp,
+        and saves to each recipient's inbox directory.
 
         Parameters:
             client_socket: Socket connection to client
             cipher: AES cipher for this session
             sender (str): Username of sending client
 
-        Receives encrypted email from client, adds timestamp,
-        and saves to each recipient's inbox directory.
         """
         encrypted_msg = cipher.encrypt(b"Send the email".ljust(16))
         client_socket.send(encrypted_msg)
@@ -306,14 +315,14 @@ class EmailServer:
     def handle_view_inbox(self, client_socket, cipher, username):
         """
         Handle inbox viewing protocol with client.
+        Retrieves list of emails in client's inbox,
+        sorts by timestamp, and sends encrypted list to client.
 
         Parameters:
             client_socket: Socket connection to client
             cipher: AES cipher for this session
             username (str): Client's username
 
-        Retrieves list of emails in client's inbox,
-        sorts by timestamp, and sends encrypted list to client.
         """
         emails = []
 
@@ -347,14 +356,14 @@ class EmailServer:
     def handle_view_email(self, client_socket, cipher, username):
         """
         Handle email viewing protocol with client.
+        Receives email index from client, retrieves corresponding
+        email from inbox, and sends encrypted content to client.
 
         Parameters:
             client_socket: Socket connection to client
             cipher: AES cipher for this session
             username (str): Client's username
 
-        Receives email index from client, retrieves corresponding
-        email from inbox, and sends encrypted content to client.
         """
         # Request email index
         request = cipher.encrypt(b"the server request email index".ljust(32))
@@ -389,6 +398,7 @@ class EmailServer:
         Uses fork() to handle multiple clients concurrently.
         Handles graceful shutdown on keyboard interrupt.
         """
+
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.bind(('', self.port))
         server_socket.listen(5)
@@ -401,7 +411,9 @@ class EmailServer:
                 # Fork for each client connection
                 pid = os.fork()
                 if pid == 0:  # Child process
+                    # Close server socket to accept new connections
                     server_socket.close()
+                    # Perform client operations
                     self.handle_client(client_socket, client_address)
                     sys.exit(0)
                 else:  # Parent process
