@@ -11,7 +11,7 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-11/21/2024
+23/11/2024
 
 TO-DO:
     - Maybe create a property for socket number like in server
@@ -22,7 +22,6 @@ import sys
 import os
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, AES
-
 
 class EmailClient:
     def __init__(self):
@@ -36,7 +35,11 @@ class EmailClient:
             self.private_cipher: PKCS1_OAEP cipher using client's private key
             self.public_key_data (bytes): Client's public key data
             self.server_cipher: PKCS1_OAEP cipher using server's public key
+
+        Raises:
+            SystemExit: Key file(s) not found in client directory
         """
+
         self.server_host = input("Enter the server IP or name: ")
         self.username = input("Enter your username: ")
         self.password = input("Enter your password: ")
@@ -57,7 +60,11 @@ class EmailClient:
                 self.server_cipher = PKCS1_OAEP.new(server_key)
 
         except FileNotFoundError:
+<<<<<<< HEAD
             print("Could not open a required resource.")
+=======
+            print("Missing certain PEM files.")
+>>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
             print("Terminating.")
             sys.exit(1)
 
@@ -75,7 +82,11 @@ class EmailClient:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.server_host, 13000))
         except Exception:
+<<<<<<< HEAD
             print("Could not connect to server.")
+=======
+            print("Failed to connect to server.")
+>>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
             print("Terminating.")
             sys.exit(1)
 
@@ -94,7 +105,7 @@ class EmailClient:
             self.cipher: AES cipher using symmetric key
         """
         try:
-            # Encrypt credentials with server's public key
+            # Encrypt credentials with server's public key and send
             credentials = f"{self.username}:{self.password}"
             encrypted_credentials = self.server_cipher.encrypt(
                 credentials.encode())
@@ -106,6 +117,7 @@ class EmailClient:
             # Handle server response
             if response == b"NEW_CLIENT":
                 self.socket.send(self.public_key_data)
+                # Receive symmetric key
                 response = self.socket.recv(1024)
             elif response == b"Invalid username or password":
                 print("Invalid username or password.")
@@ -113,7 +125,7 @@ class EmailClient:
                 return False
 
             try:
-                # Try to decrypt symmetric key
+                # Decrypt symmetric key and create cipher
                 self.sym_key = self.private_cipher.decrypt(response)
                 self.cipher = AES.new(self.sym_key, AES.MODE_ECB)
 
@@ -123,12 +135,20 @@ class EmailClient:
                 return True
 
             except Exception as _:
+<<<<<<< HEAD
                 print("Auth Ack Sock Error.")
+=======
+                print("Decryption of symmetric key failed.")
+>>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
                 print("Terminating.")
                 return False
 
         except Exception as _:
+<<<<<<< HEAD
             print("Auth Sock Error.")
+=======
+            print("Error validating credentials.")
+>>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
             print("Terminating.")
             return False
 
