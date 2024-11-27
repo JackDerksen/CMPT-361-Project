@@ -1,12 +1,11 @@
-# JSON files
-*.json
-
-# PEM files
-*.pem
-
 # Client directories
 client1/
 client2/
 client3/
 client4/
 client5/
+
+# Server keys
+server/client1_public.pem
+server/server_public.pem
+server/server_private.pem
