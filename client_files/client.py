@@ -163,6 +163,7 @@ class EmailClient:
         # Validate title length
         if len(title) > 100:
             print("Error: Title exceeds maximum length of 100 characters")
+            self.socket.send(self.cipher.encrypt(b"NOK".ljust(16)))
             return
 
         # Get content choice
@@ -177,6 +178,7 @@ class EmailClient:
                     content = f.read()
             except FileNotFoundError:
                 print(f"Error: File {filename} not found in files directory")
+                #self.socket.send(self.cipher.encrypt(b"NOK".ljust(16)))
                 return
         else:
             content = input("Enter message contents: ")
@@ -184,6 +186,7 @@ class EmailClient:
         # Validate content length
         if len(content) > 1000000:
             print("Error: Content exceeds maximum length of 1,000,000 characters")
+            self.socket.send(self.cipher.encrypt(b"NOK".ljust(16)))
             return
 
         # Construct email
