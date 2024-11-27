@@ -11,7 +11,7 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-23/11/2024
+27/11/2024
 
 TO-DO:
     - Maybe create a property for socket number like in server
@@ -266,6 +266,11 @@ class EmailClient:
 
                 # Get user choice
                 choice = input().strip()
+                # Ensure user choice is a valid option
+                is_num = choice.isnumeric()
+                while is_num == False or int(choice) < 0 or int(choice) > 4:
+                    choice = input("choice:").strip()
+                    is_num = choice.isnumeric()
 
                 # Encrypt and send choice
                 encrypted_choice = self.cipher.encrypt(
