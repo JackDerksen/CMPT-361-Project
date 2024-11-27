@@ -60,11 +60,7 @@ class EmailClient:
                 self.server_cipher = PKCS1_OAEP.new(server_key)
 
         except FileNotFoundError:
-<<<<<<< HEAD
-            print("Could not open a required resource.")
-=======
             print("Missing certain PEM files.")
->>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
             print("Terminating.")
             sys.exit(1)
 
@@ -82,11 +78,7 @@ class EmailClient:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.server_host, 13000))
         except Exception:
-<<<<<<< HEAD
-            print("Could not connect to server.")
-=======
             print("Failed to connect to server.")
->>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
             print("Terminating.")
             sys.exit(1)
 
@@ -135,20 +127,12 @@ class EmailClient:
                 return True
 
             except Exception as _:
-<<<<<<< HEAD
-                print("Auth Ack Sock Error.")
-=======
                 print("Decryption of symmetric key failed.")
->>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
                 print("Terminating.")
                 return False
 
         except Exception as _:
-<<<<<<< HEAD
-            print("Auth Sock Error.")
-=======
             print("Error validating credentials.")
->>>>>>> d44799adb0dfcb99c1523049f759b386e6a5f3ed
             print("Terminating.")
             return False
 
