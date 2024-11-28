@@ -11,7 +11,7 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-11/23/2024
+11/28/2024
 
 TO-DO:
     -
@@ -84,6 +84,9 @@ class EmailServer:
         try:
             with open("user_pass.json", "r") as f:
                 self.user_credentials = json.load(f)
+            for username in self.user_credentials:
+                self.setup_client_directory(username)
+            
         # JSON file for user credentials does not exist or cannot be found
         except FileNotFoundError:
             print("Error: user_pass.json not found.")
@@ -188,6 +191,9 @@ class EmailServer:
                 print(f"The received client information: {username} is " + 
                        "invalid (Connection Terminated).")
                 return
+
+            # Create directory to store client emails
+            #self.setup_client_directory(username)
 
             # Check if we have the client's public key
             client_cipher = self.load_client_public_key(username)
@@ -308,11 +314,14 @@ class EmailServer:
         title = lines[2].split(': ')[1]
         for recipient in recipients:
             recipient = recipient.strip()
+            
+            # Check that client exists
+            receipient_path = os.path.join(receipient)
+            if os.path.exists(receipient_path):
+                email_path = os.path.join(recipient, f"{sender}_{title}.txt")
 
-            email_path = os.path.join(recipient, f"{sender}_{title}.txt")
-
-            with open(email_path, "w") as f:
-                f.write(email_with_time)
+                with open(email_path, "w") as f:
+                    f.write(email_with_time)
 
         print(f"An email from {sender} is sent to {';'.join(recipients)} has" +
               f" a content length of {content_length}")
