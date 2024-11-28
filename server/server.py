@@ -316,8 +316,8 @@ class EmailServer:
             recipient = recipient.strip()
             
             # Check that client exists
-            receipient_path = os.path.join(receipient)
-            if os.path.exists(receipient_path):
+            recipient_path = os.path.join(recipient)
+            if os.path.exists(recipient_path):
                 email_path = os.path.join(recipient, f"{sender}_{title}.txt")
 
                 with open(email_path, "w") as f:
