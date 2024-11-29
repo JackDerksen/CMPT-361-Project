@@ -217,7 +217,7 @@ class EmailServer:
             if decrypted_ack != b"OK":
                 return
 	    # send client the first challenge
-	    self.expected_ans = send_with_challenge(client_socket, cipher, "")
+	    self.expected_ans = self.send_with_challenge(client_socket, cipher, "")
             # Main service loop
             while True:
                 menu = (
@@ -229,10 +229,10 @@ class EmailServer:
                     "4) Terminate the connection\n"
                     "choice: "
                 )
-                self.expected_ans = send_with_challenge(client_socket, cipher, menu)
+                self.expected_ans = self.send_with_challenge(client_socket, cipher, menu)
                 
                 # Get client's choice
-                choice = recv_with_challenge(client_socket, cipher)
+                choice = self.recv_with_challenge(client_socket, cipher)
 
                 if choice == "1":
                     self.handle_send_email(client_socket, cipher, username)
@@ -275,10 +275,10 @@ class EmailServer:
             sender (str): Username of sending client
 
         """
-        self.expected_ans = send_with_challenge(client_socket, cipher, "Send the email.")
+        self.expected_ans = self.send_with_challenge(client_socket, cipher, "Send the email.")
 
         # Receive and process email
-        email_content = recv_with_challenge(client_socket, cipher)
+        email_content = self.recv_with_challenge(client_socket, cipher)
 
         # Parse email content
         lines = email_content.split('\n')
@@ -344,10 +344,10 @@ class EmailServer:
         )
 
         # Send to client
-        self.expected_ans = send_with_challenge(client_socket, cipher, index_list)
+        self.expected_ans = self.send_with_challenge(client_socket, cipher, inbox_list)
 
         # Wait for acknowledgment
-        recv_with_challenge(client_socket, cipher)
+        self.recv_with_challenge(client_socket, cipher)
 
     def handle_view_email(self, client_socket, cipher, username):
         """
@@ -362,10 +362,10 @@ class EmailServer:
 
         """
         # Request email index
-        self.expected_ans = send_with_challenge(client_socket, cipher, "the server request email index")
+        self.expected_ans = self.send_with_challenge(client_socket, cipher, "the server request email index")
 
         # Get email index
-        index = recv_with_challenge(client_socket, cipher)
+        index = self.recv_with_challenge(client_socket, cipher)
         index = int(index)
 
         # Get email content
@@ -378,12 +378,12 @@ class EmailServer:
         if 0 <= index - 1 < len(emails):
             with open(emails[index-1], "r") as f:
                 content = f.read()
-                self.expected_ans = send_with_challenge(client_socket, cipher, content)
+                self.expected_ans = self.send_with_challenge(client_socket, cipher, content)
         else:
             error_msg = "Invalid email index"
-            self.expected_ans = send_with_challenge(client_socket, cipher, error_msg)
+            self.expected_ans = self.send_with_challenge(client_socket, cipher, error_msg)
 
-    def recv_with_challenge(client_socket, cipher):
+    def recv_with_challenge(self, client_socket, cipher):
     """
     Called when server is expecting a response from the client in symmetric encryption mode. The client
     must supply the valid response code for the communication to be accepted. The client is never expected
@@ -396,7 +396,7 @@ class EmailServer:
     Returns:
     decrypted_msg - the client's message 
     """
-        client_response = null
+        client_response = "EMPTY_VAL"
         
         while client_response != self.expected_ans:
             encrypted_msg = client_socket.recv(2048)
@@ -407,7 +407,7 @@ class EmailServer:
         
         return decrypted_msg
         
-    def send_with_challenge(client_socket, cipher, message):
+    def send_with_challenge(self, client_socket, cipher, message):
     """
     Called when server is sending a message to client in symmetric encryption mode. Handles the encryption
     and adds a challenge to the client, which must be answered correctly the next time the client wants to send
@@ -422,21 +422,21 @@ class EmailServer:
     expected_response - the code the client must append to the front of their message next time server
     receives from the cient.
     """
-    	challenge, expected response = generate_challenge()
+    	challenge, expected_response = self.generate_challenge()
     	message = challenge + message
     
         padded_message = message.encode().ljust((len(message) // 16 + 1) * 16)
         client_socket.send(cipher.encrypt(padded_message))
         return expected_response
         
-    def generate_challenge():
+    def generate_challenge(self):
     """
     Generate a challenge and the answer to that challenge
     
     Returns:
     a tuple of values: the challenge string for the client to decode and add together, and the answer string to compare to
     """
-        a,b = randint(0,497000, randint(0,497000)
+        a,b = int.from_bytes(get_random_bytes(2), "little"), int.from_bytes(get_random_bytes(2), "little")
         return f"{a:6}{b:6}", str(a + b)
 
     def start(self):

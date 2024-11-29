@@ -156,7 +156,7 @@ class EmailClient:
         # Wait for server prompt
         # encrypted_prompt = self.socket.recv(1024)
         # self.cipher.decrypt(encrypted_prompt)
-        recv_with_challenge()
+        self.recv_with_challenge()
 
         # Get email details
         recipients = input("Enter destinations (separated by ;): ")
@@ -199,7 +199,7 @@ class EmailClient:
         )
 
         # Encrypt and send
-        send_with_challenge(email)
+        self.send_with_challenge(email)
         print("The message is sent to the server.")
 
     def view_inbox(self):
@@ -209,11 +209,11 @@ class EmailClient:
         Receives encrypted inbox listing from server, decrypts and displays it.
         Sends acknowledgment back to server after displaying.
         """
-        inbox_list = recv_with_challenge()
+        inbox_list = self.recv_with_challenge()
         print(inbox_list)
 
         # Send acknowledgment
-        send_with_challenge("OK")
+        self.send_with_challenge("OK")
 
     def view_email(self):
         """
@@ -225,20 +225,20 @@ class EmailClient:
         # Receive server request
         # encrypted_request = self.socket.recv(1024)
         # self.cipher.decrypt(encrypted_request)
-        recv_with_challenge()
+        self.recv_with_challenge()
 
         # Send email index
         index = input("Enter the email index you wish to view: ")
-        send_with_challenge(index)
+        self.send_with_challenge(index)
 
         # Receive and display email
-        email = recv_with_challenge()
+        email = self.recv_with_challenge()
         if not email.startswith("Invalid"):
             print(email)
         else:
             print(f"\nError: {email}")
 
-    def recv_with_challenge():
+    def recv_with_challenge(self):
         encrypted_msg = client_socket.recv(2048)
         decrypted_msg = cipher.decrypt(encrypted_msg).strip().decode()
         self.next_ans = int(decrypted_msg[:6]) + int(decrypted_msg[6:12])
@@ -246,7 +246,7 @@ class EmailClient:
         
         return decrypted_msg[12:]
         
-    def send_with_challenge(message):
+    def send_with_challenge(self, message):
         message = self.next_ans + message
         padded_message = message.encode().ljust((len(message) // 16 + 1) * 16)
         self.socket.send(self.cipher.encrypt(padded_message))
@@ -270,18 +270,18 @@ class EmailClient:
                 return
 
             # Get first challenge
-            recv_with_challenge()
+            self.recv_with_challenge()
             
             while True:
                 # Receive and decrypt menu
-                menu = recv_with_challenge()
+                menu = self.recv_with_challenge()
                 print(menu, end='')
 
                 # Get user choice
                 choice = input().strip()
 
                 # Encrypt and send choice
-                send_with_challenge(choice)
+                self.end_with_challenge(choice)
 
                 # Handle user choice
                 if choice == '1':
