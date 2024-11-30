@@ -303,7 +303,9 @@ class EmailServer:
             recipient = recipient.strip()
 
             email_path = os.path.join(recipient, f"{sender}_{title}.txt")
-
+            
+            # If the client inbox directory doesnt exist, it must be made
+            os.makedirs(os.path.dirname(email_path), exist_ok=True)
             with open(email_path, "w") as f:
                 f.write(email_with_time)
 
