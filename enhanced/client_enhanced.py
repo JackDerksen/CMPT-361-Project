@@ -239,18 +239,18 @@ class EmailClient:
             print(f"\nError: {email}")
 
     def recv_with_challenge(self):
-        encrypted_msg = client_socket.recv(2048)
-        decrypted_msg = cipher.decrypt(encrypted_msg).strip().decode()
-        self.next_ans = int(decrypted_msg[:6]) + int(decrypted_msg[6:12])
-        self.next_ans = f"{self.next_ans:6}"
-        
+        encrypted_msg = self.socket.recv(2048)
+        decrypted_msg = self.cipher.decrypt(encrypted_msg).strip().decode()
+        self.next_ans = int(decrypted_msg[:6].replace(".","")) + \
+                int(decrypted_msg[6:12].replace(".",""))
+        self.next_ans = f"{self.next_ans:}"
+       
         return decrypted_msg[12:]
         
     def send_with_challenge(self, message):
-        message = self.next_ans + message
+        message = self.next_ans.rjust(6,".") + message
         padded_message = message.encode().ljust((len(message) // 16 + 1) * 16)
         self.socket.send(self.cipher.encrypt(padded_message))
-
     def run(self):
         """
         Main client operation loop.
@@ -281,7 +281,7 @@ class EmailClient:
                 choice = input().strip()
 
                 # Encrypt and send choice
-                self.end_with_challenge(choice)
+                self.send_with_challenge(choice)
 
                 # Handle user choice
                 if choice == '1':

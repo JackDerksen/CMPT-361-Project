@@ -25,7 +25,7 @@ import datetime
 import sys
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, AES
-from Crypto.Random import get_random_bytes, randint
+from Crypto.Random import get_random_bytes
 
 
 class EmailServer:
@@ -187,8 +187,8 @@ class EmailServer:
             if not self.verify_credentials(username, password):
                 #print("DEBUG: Verification failed")
                 client_socket.send(b"Invalid username or password")
-                print(f"The received client information: {\
-                      username} is invalid (Connection Terminated).")
+                print(f"The received client information: \
+                        {username} is invalid (Connection Terminated).")
                 return
 
             # Check if we have the client's public key
@@ -216,8 +216,8 @@ class EmailServer:
             
             if decrypted_ack != b"OK":
                 return
-	    # send client the first challenge
-	    self.expected_ans = self.send_with_challenge(client_socket, cipher, "")
+            # send client the first challenge
+            self.expected_ans = self.send_with_challenge(client_socket, cipher, "")
             # Main service loop
             while True:
                 menu = (
@@ -307,8 +307,8 @@ class EmailServer:
             with open(email_path, "w") as f:
                 f.write(email_with_time)
 
-        print(f"An email from {sender} is sent to {\
-              ';'.join(recipients)} has a content length of {content_length}")
+        print(f"An email from {sender} is sent to \
+                {';'.join(recipients)} has a content length of {content_length}")
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """
@@ -384,60 +384,65 @@ class EmailServer:
             self.expected_ans = self.send_with_challenge(client_socket, cipher, error_msg)
 
     def recv_with_challenge(self, client_socket, cipher):
-    """
-    Called when server is expecting a response from the client in symmetric encryption mode. The client
-    must supply the valid response code for the communication to be accepted. The client is never expected
-    to get it wrong, so the loop is to handle if an unauthorised user mimics a packet from the client.
+        """
+        Called when server is expecting a response from the client in symmetric encryption mode. The client
+        must supply the valid response code for the communication to be accepted. The client is never expected
+        to get it wrong, so the loop is to handle if an unauthorised user mimics a packet from the client.
     
-    Inputs:
-    client_socket - connection socked used by server for client
-    cipher - the cipher used to encrypt/decrypt the message
+        Inputs:
+        client_socket - connection socked used by server for client
+        cipher - the cipher used to encrypt/decrypt the message
     
-    Returns:
-    decrypted_msg - the client's message 
-    """
+        Returns:
+        decrypted_msg - the client's message 
+        """
         client_response = "EMPTY_VAL"
-        
-        while client_response != self.expected_ans:
+        tries = 0
+
+        while client_response != self.expected_ans and tries < 10:
             encrypted_msg = client_socket.recv(2048)
             decrypted_msg = cipher.decrypt(encrypted_msg).strip().decode()
-            
-            client_response = decrypted_msg[:6]
+            # Isolate the response to the challenge and unpad the "." chars
+            client_response = decrypted_msg[:6].replace(".","")
             decrypted_msg = decrypted_msg[6:]
+            tries += 1
         
         return decrypted_msg
         
     def send_with_challenge(self, client_socket, cipher, message):
-    """
-    Called when server is sending a message to client in symmetric encryption mode. Handles the encryption
-    and adds a challenge to the client, which must be answered correctly the next time the client wants to send
-    something to the server.
+        """
+        Called when server is sending a message to client in symmetric encryption mode. Handles the encryption
+        and adds a challenge to the client, which must be answered correctly the next time the client wants to send
+        something to the server.
     
-    Inputs:
-    client_socket - connection socked used by server for client
-    cipher - the cipher used to encrypt/decrypt the message
-    message - string to send to the client
+        Inputs:
+        client_socket - connection socked used by server for client
+        cipher - the cipher used to encrypt/decrypt the message
+        message - string to send to the client
     
-    Returns:
-    expected_response - the code the client must append to the front of their message next time server
-    receives from the cient.
-    """
-    	challenge, expected_response = self.generate_challenge()
-    	message = challenge + message
+        Returns:
+        expected_response - the code the client must append to the front of their message next time server
+        receives from the cient.
+        """
+        challenge, expected_response = self.generate_challenge()
+        message = challenge + message
     
         padded_message = message.encode().ljust((len(message) // 16 + 1) * 16)
         client_socket.send(cipher.encrypt(padded_message))
         return expected_response
         
     def generate_challenge(self):
-    """
-    Generate a challenge and the answer to that challenge
+        """
+        Generate a challenge and the answer to that challenge
     
-    Returns:
-    a tuple of values: the challenge string for the client to decode and add together, and the answer string to compare to
-    """
+        Returns:
+        a tuple of values: the challenge string for the client to decode and add together, and the answer string to compare to
+        """
+        # We cannot import random, so I am getting expensive cryptographic bytesand converting them to random integers
         a,b = int.from_bytes(get_random_bytes(2), "little"), int.from_bytes(get_random_bytes(2), "little")
-        return f"{a:6}{b:6}", str(a + b)
+        # Pad with "." characters so extracting the challenge field is easy (static length)
+        ab_together = str(a).rjust(6,".") + str(b).rjust(6,".")
+        return ab_together, str(a + b)
 
     def start(self):
         """
