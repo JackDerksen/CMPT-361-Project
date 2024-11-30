@@ -185,8 +185,8 @@ class EmailServer:
             if not self.verify_credentials(username, password):
                 #print("DEBUG: Verification failed")
                 client_socket.send(b"Invalid username or password")
-                print(f"The received client information: {
-                      username} is invalid (Connection Terminated).")
+                print(f"The received client information: {username} is " + 
+                       "invalid (Connection Terminated).")
                 return
 
             # Check if we have the client's public key
@@ -268,6 +268,7 @@ class EmailServer:
         Handle email sending protocol with client.
         Receives encrypted email from client, adds timestamp,
         and saves to each recipient's inbox directory.
+        Function will do nothing if receiving Not OK from client.
 
         Parameters:
             client_socket: Socket connection to client
@@ -281,6 +282,10 @@ class EmailServer:
         # Receive and process email
         encrypted_email = client_socket.recv(4096)
         email_content = cipher.decrypt(encrypted_email).strip().decode()
+
+        # Client made an invalid entry (ex. title too long)
+        if email_content == "NOK":
+            return
 
         # Parse email content
         lines = email_content.split('\n')
@@ -309,8 +314,8 @@ class EmailServer:
             with open(email_path, "w") as f:
                 f.write(email_with_time)
 
-        print(f"An email from {sender} is sent to {
-              ';'.join(recipients)} has a content length of {content_length}")
+        print(f"An email from {sender} is sent to {';'.join(recipients)} has" +
+              f" a content length of {content_length}")
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """

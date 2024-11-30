@@ -1,6 +1,9 @@
-# JSON files
-*.json
+# Client directories
+client1/
+client2/
+client3/
+client4/
+client5/
 
-# PEM files
-*.pem
-
+# Server keys
+server/*.pem
