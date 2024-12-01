@@ -366,19 +366,6 @@ class EmailServer:
         for i in emails:
             inbox_list += f"{i[0]:<8} {i[1]:<9} {i[2]:<30} {i[3]:<20}"
             inbox_list += f"\n"
-        '''
-        for i in emails:
-            inbox_list += ("{:<8}{:<9}{:<30}{:<20}\n".format(
-                    i[0], i[1], i[2], i[3]
-                ))
-            print(inbox_list)
-        '''
-        '''
-        inbox_list += "\n".join(
-                f"{i+1:<8} {sender:<9} {timestamp:<30} {title:<20}"
-            for i, (sender, timestamp, title) in enumerate(emails)
-        )
-        '''
 
         # Send to client
         encrypted_list = cipher.encrypt(
