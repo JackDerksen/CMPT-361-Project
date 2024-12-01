@@ -11,7 +11,7 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-27/11/2024
+1/12/2024
 
 TO-DO:
     - Maybe create a property for socket number like in server
