@@ -338,26 +338,47 @@ class EmailServer:
             username (str): Client's username
 
         """
+        h = ["Index", "From", "DateTime", "Title"]
         emails = []
+        index_count = 1
 
         for filepath in glob.glob(os.path.join(username, "*.txt")):
+            info = []
             with open(filepath, "r") as f:
                 content = f.read()
                 lines = content.split('\n')
+                info.append(str(index_count))
+                index_count+=1
                 sender = lines[0].split(': ')[1]
+                info.append(sender)
                 timestamp = lines[2].split(': ')[1]
+                info.append(timestamp)
                 title = lines[3].split(': ')[1]
-                emails.append((sender, timestamp, title))
+                info.append(title)
+                emails.append(info)
 
         # Sort by timestamp
         emails.sort(key=lambda x: x[1], reverse=True)
 
-        # Format inbox list
-        inbox_list = "Index From DateTime Title\n"
+        inbox_list = f"{h[0]:<8} {h[1]:<9} {h[2]:<30} {h[3]:<20}"
+        inbox_list += f"\n"
+
+        for i in emails:
+            inbox_list += f"{i[0]:<8} {i[1]:<9} {i[2]:<30} {i[3]:<20}"
+            inbox_list += f"\n"
+        '''
+        for i in emails:
+            inbox_list += ("{:<8}{:<9}{:<30}{:<20}\n".format(
+                    i[0], i[1], i[2], i[3]
+                ))
+            print(inbox_list)
+        '''
+        '''
         inbox_list += "\n".join(
-            f"{i+1} {sender} {timestamp} {title}"
+                f"{i+1:<8} {sender:<9} {timestamp:<30} {title:<20}"
             for i, (sender, timestamp, title) in enumerate(emails)
         )
+        '''
 
         # Send to client
         encrypted_list = cipher.encrypt(

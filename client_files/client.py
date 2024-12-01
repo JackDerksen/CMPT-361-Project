@@ -170,6 +170,16 @@ class EmailClient:
         content_choice = input(
             "Would you like to load contents from a file?(Y/N) ")
 
+        # Ensure client only selects yes or no
+        while True:
+            if content_choice.upper() == 'Y':
+                break
+            elif content_choice.upper() == 'N':
+                break
+            else:
+                content_choice = input(
+                    "Would you like to load contents from a file?(Y/N) ")
+
         if content_choice.upper() == 'Y':
             filename = input("Enter filename: ")
             filepath = os.path.join("files", filename)
