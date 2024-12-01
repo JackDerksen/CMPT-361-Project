@@ -402,15 +402,17 @@ class EmailServer:
             reverse=True
         )
 
-        if 0 <= index - 1 < len(emails):
+        if 0 < index <= len(emails):
             with open(emails[index-1], "r") as f:
                 content = f.read()
                 encrypted_content = cipher.encrypt(
                     content.encode().ljust((len(content) // 16 + 1) * 16))
                 client_socket.send(encrypted_content)
         else:
-            error_msg = "Invalid email index"
-            client_socket.send(cipher.encrypt(error_msg.encode().ljust(16)))
+            encrypted_msg = cipher.encrypt(b"Invalid email index".ljust(32))
+            client_socket.send(encrypted_msg)
+            #error_msg = "Invalid email index"
+            #client_socket.send(cipher.encrypt(error_msg.encode().ljust(16)))
 
     def start(self):
         """
