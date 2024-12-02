@@ -86,7 +86,7 @@ class EmailServer:
                 self.user_credentials = json.load(f)
             for username in self.user_credentials:
                 self.setup_client_directory(username)
-            
+
         # JSON file for user credentials does not exist or cannot be found
         except FileNotFoundError:
             print("Error: user_pass.json not found.")
@@ -186,7 +186,7 @@ class EmailServer:
 
             # Verify credentials
             if not self.verify_credentials(username, password):
-                #print("DEBUG: Verification failed")
+                # print("DEBUG: Verification failed")
                 client_socket.send(b"Invalid username or password")
 
                 print(f"The received client information: \
@@ -195,7 +195,7 @@ class EmailServer:
                 return
 
             # Create directory to store client emails
-            #self.setup_client_directory(username)
+            # self.setup_client_directory(username)
 
             # Check if we have the client's public key
             client_cipher = self.load_client_public_key(username)
@@ -219,7 +219,6 @@ class EmailServer:
             encrypted_ack = client_socket.recv(1024)
             decrypted_ack = cipher.decrypt(encrypted_ack).strip()
 
-            
             if decrypted_ack != b"OK":
                 return
 
@@ -316,7 +315,7 @@ class EmailServer:
         title = lines[2].split(': ')[1]
         for recipient in recipients:
             recipient = recipient.strip()
-            
+
             # Check that client exists
             recipient_path = os.path.join(recipient)
             if os.path.exists(recipient_path):
@@ -331,7 +330,6 @@ class EmailServer:
 
         print(f"An email from {sender} is sent to \
                 {';'.join(recipients)} has a content length of {content_length}")
-
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """
@@ -355,7 +353,7 @@ class EmailServer:
                 content = f.read()
                 lines = content.split('\n')
                 info.append(str(index_count))
-                index_count+=1
+                index_count += 1
                 sender = lines[0].split(': ')[1]
                 info.append(sender)
                 timestamp = lines[2].split(': ')[1]
