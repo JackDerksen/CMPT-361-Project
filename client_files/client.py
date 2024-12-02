@@ -11,7 +11,7 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-23/11/2024
+1/12/2024
 
 TO-DO:
     - Maybe create a property for socket number like in server
@@ -163,11 +163,22 @@ class EmailClient:
         # Validate title length
         if len(title) > 100:
             print("Error: Title exceeds maximum length of 100 characters")
+            self.socket.send(self.cipher.encrypt(b"NOK".ljust(16)))
             return
 
         # Get content choice
         content_choice = input(
             "Would you like to load contents from a file?(Y/N) ")
+
+        # Ensure client only selects yes or no
+        while True:
+            if content_choice.upper() == 'Y':
+                break
+            elif content_choice.upper() == 'N':
+                break
+            else:
+                content_choice = input(
+                    "Would you like to load contents from a file?(Y/N) ")
 
         if content_choice.upper() == 'Y':
             filename = input("Enter filename: ")
@@ -177,6 +188,7 @@ class EmailClient:
                     content = f.read()
             except FileNotFoundError:
                 print(f"Error: File {filename} not found in files directory")
+                #self.socket.send(self.cipher.encrypt(b"NOK".ljust(16)))
                 return
         else:
             content = input("Enter message contents: ")
@@ -184,6 +196,7 @@ class EmailClient:
         # Validate content length
         if len(content) > 1000000:
             print("Error: Content exceeds maximum length of 1,000,000 characters")
+            self.socket.send(self.cipher.encrypt(b"NOK".ljust(16)))
             return
 
         # Construct email
@@ -266,6 +279,11 @@ class EmailClient:
 
                 # Get user choice
                 choice = input().strip()
+                # Ensure user choice is a valid option
+                is_num = choice.isnumeric()
+                while is_num == False or int(choice) < 0 or int(choice) > 4:
+                    choice = input("choice:").strip()
+                    is_num = choice.isnumeric()
 
                 # Encrypt and send choice
                 encrypted_choice = self.cipher.encrypt(

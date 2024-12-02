@@ -1,6 +1,8 @@
-##################################################################
-# THIS MAKEFILE IS AI-GENERATED, INTENDED FOR TESTING PURPOSES!! #
-##################################################################
+#*****************************************************************************
+# Makefile                                                                   *
+# Author: Jack Derksen                                                       *
+# Last Updated: 25/11/2024                                                   *
+#*****************************************************************************
 
 # Directories
 SERVER_DIR := server
@@ -8,6 +10,7 @@ CLIENT_DIRS := client1 client2 client3 client4 client5
 CLIENT_FILES_DIR := client_files
 
 # Default target
+# Display makefile commands with brief descriptions
 .PHONY: all
 all:
 	@echo "Available commands:"

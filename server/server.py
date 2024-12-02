@@ -11,7 +11,7 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-11/23/2024
+1/12/2024
 
 TO-DO:
     -
@@ -84,6 +84,9 @@ class EmailServer:
         try:
             with open("user_pass.json", "r") as f:
                 self.user_credentials = json.load(f)
+            for username in self.user_credentials:
+                self.setup_client_directory(username)
+            
         # JSON file for user credentials does not exist or cannot be found
         except FileNotFoundError:
             print("Error: user_pass.json not found.")
@@ -185,9 +188,14 @@ class EmailServer:
             if not self.verify_credentials(username, password):
                 #print("DEBUG: Verification failed")
                 client_socket.send(b"Invalid username or password")
+
                 print(f"The received client information: \
                         {username} is invalid (Connection Terminated).")
+
                 return
+
+            # Create directory to store client emails
+            #self.setup_client_directory(username)
 
             # Check if we have the client's public key
             client_cipher = self.load_client_public_key(username)
@@ -220,11 +228,11 @@ class EmailServer:
                 menu = (
                     "\n\n"
                     "Select the operation:\n"
-                    "1) Create and send an email\n"
-                    "2) Display the inbox list\n"
-                    "3) Display the email contents\n"
-                    "4) Terminate the connection\n"
-                    "choice: "
+                    "\t1) Create and send an email\n"
+                    "\t2) Display the inbox list\n"
+                    "\t3) Display the email contents\n"
+                    "\t4) Terminate the connection\n"
+                    "\n\tchoice: "
                 )
                 padded_menu = menu.encode().ljust((len(menu) // 16 + 1) * 16)
                 encrypted_menu = cipher.encrypt(padded_menu)
@@ -268,6 +276,7 @@ class EmailServer:
         Handle email sending protocol with client.
         Receives encrypted email from client, adds timestamp,
         and saves to each recipient's inbox directory.
+        Function will do nothing if receiving Not OK from client.
 
         Parameters:
             client_socket: Socket connection to client
@@ -281,6 +290,10 @@ class EmailServer:
         # Receive and process email
         encrypted_email = client_socket.recv(4096)
         email_content = cipher.decrypt(encrypted_email).strip().decode()
+
+        # Client made an invalid entry (ex. title too long)
+        if email_content == "NOK":
+            return
 
         # Parse email content
         lines = email_content.split('\n')
@@ -303,6 +316,11 @@ class EmailServer:
         title = lines[2].split(': ')[1]
         for recipient in recipients:
             recipient = recipient.strip()
+            
+            # Check that client exists
+            recipient_path = os.path.join(recipient)
+            if os.path.exists(recipient_path):
+                email_path = os.path.join(recipient, f"{sender}_{title}.txt")
 
             email_path = os.path.join(recipient, f"{sender}_{title}.txt")
 
@@ -313,6 +331,7 @@ class EmailServer:
 
         print(f"An email from {sender} is sent to \
                 {';'.join(recipients)} has a content length of {content_length}")
+
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """
@@ -326,26 +345,34 @@ class EmailServer:
             username (str): Client's username
 
         """
+        h = ["Index", "From", "DateTime", "Title"]
         emails = []
+        index_count = 1
 
         for filepath in glob.glob(os.path.join(username, "*.txt")):
+            info = []
             with open(filepath, "r") as f:
                 content = f.read()
                 lines = content.split('\n')
+                info.append(str(index_count))
+                index_count+=1
                 sender = lines[0].split(': ')[1]
+                info.append(sender)
                 timestamp = lines[2].split(': ')[1]
+                info.append(timestamp)
                 title = lines[3].split(': ')[1]
-                emails.append((sender, timestamp, title))
+                info.append(title)
+                emails.append(info)
 
         # Sort by timestamp
         emails.sort(key=lambda x: x[1], reverse=True)
 
-        # Format inbox list
-        inbox_list = "Index From DateTime Title\n"
-        inbox_list += "\n".join(
-            f"{i+1} {sender} {timestamp} {title}"
-            for i, (sender, timestamp, title) in enumerate(emails)
-        )
+        inbox_list = f"{h[0]:<8} {h[1]:<9} {h[2]:<30} {h[3]:<20}"
+        inbox_list += f"\n"
+
+        for i in emails:
+            inbox_list += f"{i[0]:<8} {i[1]:<9} {i[2]:<30} {i[3]:<20}"
+            inbox_list += f"\n"
 
         # Send to client
         encrypted_list = cipher.encrypt(
@@ -382,15 +409,15 @@ class EmailServer:
             reverse=True
         )
 
-        if 0 <= index - 1 < len(emails):
+        if 0 < index <= len(emails):
             with open(emails[index-1], "r") as f:
                 content = f.read()
                 encrypted_content = cipher.encrypt(
                     content.encode().ljust((len(content) // 16 + 1) * 16))
                 client_socket.send(encrypted_content)
         else:
-            error_msg = "Invalid email index"
-            client_socket.send(cipher.encrypt(error_msg.encode().ljust(16)))
+            encrypted_msg = cipher.encrypt(b"Invalid email index".ljust(32))
+            client_socket.send(encrypted_msg)
 
     def start(self):
         """
