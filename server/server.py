@@ -344,39 +344,39 @@ class EmailServer:
 
         """
         h = ["Index", "From", "DateTime", "Title"]                              
-342     emails = []                                                             
-343     index_count = 1                                                         
-344                                                                                 
-345     # Cycle through all files in client inbox                               
-346     for filepath in glob.glob(os.path.join(username, "*.txt")):             
-347         info = []                                                           
-348         with open(filepath, "r") as f:                                      
-349             # Obtain sender, timestamp, and title info from each email      
-350             # Append information to list 'info'                             
-351             content = f.read()                                              
-352             lines = content.split('\n')                                     
-353             sender = lines[0].split(': ')[1]                                
-354             info.append(sender)                                             
-355             timestamp = lines[2].split(': ')[1]                             
-356             info.append(timestamp)                                          
-357             title = lines[3].split(': ')[1]                                 
-358             info.append(title)                                              
-359             # Append 'info' to 'emails', making a list of lists             
-360             emails.append(info)                                             
-361                                                                                 
-362     # Sort by timestamp                                                     
-363     emails.sort(key=lambda x: x[1], reverse=True)                           
-364                                                                                 
-365     # Format headers                                                        
-366     inbox_list = f"{h[0]:<8} {h[1]:<9} {h[2]:<30} {h[3]:<20}"               
-367     inbox_list += f"\n"                                                     
-368                                                                                 
-369     # Concatenate formatted email information                               
-370     for i in emails:                                                        
-371         idx_str = str(index_count)                                          
-372         inbox_list += f"{idx_str:<8} {i[0]:<9} {i[1]:<30} {i[2]:<20}"       
-373         index_count += 1                                                    
-374         inbox_list += f"\n"  
+        emails = []                                                             
+        index_count = 1                                                         
+                                                                                    
+        # Cycle through all files in client inbox                               
+        for filepath in glob.glob(os.path.join(username, "*.txt")):             
+            info = []                                                           
+            with open(filepath, "r") as f:                                      
+                # Obtain sender, timestamp, and title info from each email      
+                # Append information to list 'info'                             
+                content = f.read()                                              
+                lines = content.split('\n')                                     
+                sender = lines[0].split(': ')[1]                                
+                info.append(sender)                                             
+                timestamp = lines[2].split(': ')[1]                             
+                info.append(timestamp)                                          
+                title = lines[3].split(': ')[1]                                 
+                info.append(title)                                              
+                # Append 'info' to 'emails', making a list of lists             
+                emails.append(info)                                             
+                                                                                 
+        # Sort by timestamp                                                     
+        emails.sort(key=lambda x: x[1], reverse=True)                           
+                                                                                    
+        # Format headers                                                        
+        inbox_list = f"{h[0]:<8} {h[1]:<9} {h[2]:<30} {h[3]:<20}"               
+        inbox_list += f"\n"                                                     
+                                                                                    
+        # Concatenate formatted email information                               
+        for i in emails:                                                        
+            idx_str = str(index_count)                                          
+            inbox_list += f"{idx_str:<8} {i[0]:<9} {i[1]:<30} {i[2]:<20}"       
+            index_count += 1                                                    
+            inbox_list += f"\n"  
 
         # Send to client
         encrypted_list = cipher.encrypt(
