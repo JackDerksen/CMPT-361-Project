@@ -343,34 +343,40 @@ class EmailServer:
             username (str): Client's username
 
         """
-        h = ["Index", "From", "DateTime", "Title"]
-        emails = []
-        index_count = 1
-
-        for filepath in glob.glob(os.path.join(username, "*.txt")):
-            info = []
-            with open(filepath, "r") as f:
-                content = f.read()
-                lines = content.split('\n')
-                info.append(str(index_count))
-                index_count += 1
-                sender = lines[0].split(': ')[1]
-                info.append(sender)
-                timestamp = lines[2].split(': ')[1]
-                info.append(timestamp)
-                title = lines[3].split(': ')[1]
-                info.append(title)
-                emails.append(info)
-
-        # Sort by timestamp
-        emails.sort(key=lambda x: x[1], reverse=True)
-
-        inbox_list = f"{h[0]:<8} {h[1]:<9} {h[2]:<30} {h[3]:<20}"
-        inbox_list += f"\n"
-
-        for i in emails:
-            inbox_list += f"{i[0]:<8} {i[1]:<9} {i[2]:<30} {i[3]:<20}"
-            inbox_list += f"\n"
+        h = ["Index", "From", "DateTime", "Title"]                              
+        emails = []                                                             
+        index_count = 1                                                         
+                                                                                    
+        # Cycle through all files in client inbox                               
+        for filepath in glob.glob(os.path.join(username, "*.txt")):             
+            info = []                                                           
+            with open(filepath, "r") as f:                                      
+                # Obtain sender, timestamp, and title info from each email      
+                # Append information to list 'info'                             
+                content = f.read()                                              
+                lines = content.split('\n')                                     
+                sender = lines[0].split(': ')[1]                                
+                info.append(sender)                                             
+                timestamp = lines[2].split(': ')[1]                             
+                info.append(timestamp)                                          
+                title = lines[3].split(': ')[1]                                 
+                info.append(title)                                              
+                # Append 'info' to 'emails', making a list of lists             
+                emails.append(info)                                             
+                                                                                 
+        # Sort by timestamp                                                     
+        emails.sort(key=lambda x: x[1], reverse=True)                           
+                                                                                    
+        # Format headers                                                        
+        inbox_list = f"{h[0]:<8} {h[1]:<9} {h[2]:<30} {h[3]:<20}"               
+        inbox_list += f"\n"                                                     
+                                                                                    
+        # Concatenate formatted email information                               
+        for i in emails:                                                        
+            idx_str = str(index_count)                                          
+            inbox_list += f"{idx_str:<8} {i[0]:<9} {i[1]:<30} {i[2]:<20}"       
+            index_count += 1                                                    
+            inbox_list += f"\n"  
 
         # Send to client
         encrypted_list = cipher.encrypt(
