@@ -188,8 +188,10 @@ class EmailServer:
             if not self.verify_credentials(username, password):
                 #print("DEBUG: Verification failed")
                 client_socket.send(b"Invalid username or password")
-                print(f"The received client information: {username} is " + 
-                       "invalid (Connection Terminated).")
+
+                print(f"The received client information: \
+                        {username} is invalid (Connection Terminated).")
+
                 return
 
             # Create directory to store client emails
@@ -320,11 +322,16 @@ class EmailServer:
             if os.path.exists(recipient_path):
                 email_path = os.path.join(recipient, f"{sender}_{title}.txt")
 
-                with open(email_path, "w") as f:
-                    f.write(email_with_time)
+            email_path = os.path.join(recipient, f"{sender}_{title}.txt")
 
-        print(f"An email from {sender} is sent to {';'.join(recipients)} has" +
-              f" a content length of {content_length}")
+            # if client inbox directory doesnt exist, it must be created
+            os.makedirs(os.path.dirname(email_path), exist_ok=True)
+            with open(email_path, "w") as f:
+                f.write(email_with_time)
+
+        print(f"An email from {sender} is sent to \
+                {';'.join(recipients)} has a content length of {content_length}")
+
 
     def handle_view_inbox(self, client_socket, cipher, username):
         """
