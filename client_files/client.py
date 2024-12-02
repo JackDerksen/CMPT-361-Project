@@ -11,7 +11,7 @@ Nolan Schlacht
 De Xie
 
 Last Updated:
-27/11/2024
+1/12/2024
 
 TO-DO:
     - Maybe create a property for socket number like in server
@@ -169,6 +169,16 @@ class EmailClient:
         # Get content choice
         content_choice = input(
             "Would you like to load contents from a file?(Y/N) ")
+
+        # Ensure client only selects yes or no
+        while True:
+            if content_choice.upper() == 'Y':
+                break
+            elif content_choice.upper() == 'N':
+                break
+            else:
+                content_choice = input(
+                    "Would you like to load contents from a file?(Y/N) ")
 
         if content_choice.upper() == 'Y':
             filename = input("Enter filename: ")
