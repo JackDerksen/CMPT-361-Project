@@ -226,11 +226,11 @@ class EmailServer:
                 menu = (
                     "\n\n"
                     "Select the operation:\n"
-                    "1) Create and send an email\n"
-                    "2) Display the inbox list\n"
-                    "3) Display the email contents\n"
-                    "4) Terminate the connection\n"
-                    "choice: "
+                    "\t1) Create and send an email\n"
+                    "\t2) Display the inbox list\n"
+                    "\t3) Display the email contents\n"
+                    "\t4) Terminate the connection\n"
+                    "\n\tchoice: "
                 )
                 padded_menu = menu.encode().ljust((len(menu) // 16 + 1) * 16)
                 encrypted_menu = cipher.encrypt(padded_menu)
@@ -411,8 +411,6 @@ class EmailServer:
         else:
             encrypted_msg = cipher.encrypt(b"Invalid email index".ljust(32))
             client_socket.send(encrypted_msg)
-            #error_msg = "Invalid email index"
-            #client_socket.send(cipher.encrypt(error_msg.encode().ljust(16)))
 
     def start(self):
         """
