@@ -1,6 +1,6 @@
 # MacEwan CMPT-361 Final Project: A Python secure mail transfer protocol application
 
-This is a **reasonably secure** SMTP application that works between 5 clients and a single central server over a TCP connection. Utilizes AES message encryption.
+This is a **reasonably secure** SMTP application that works between 5 clients and a single central server over a TCP connection. Utilizes AES and RSA message encryption.
 
 
 ## Developed by
